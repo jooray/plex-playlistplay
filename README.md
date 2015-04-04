@@ -25,8 +25,10 @@ To show playlists:
 
 To play playlist by name or number:
 
-    plex-playlistplay.rb plex_server_hostname plex_server_port client_hostname playlist_name
-    plex-playlistplay.rb plex_server_hostname plex_server_port client_hostname playlist_number
+    plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_name
+    plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_number
+
+When -s is specified, shuffle the playlist before playing
 
 Examples
 --------
@@ -40,9 +42,9 @@ Play a playlist called ``Awesome Playlist`` residing on server ``192.168.1.1:324
     
     plex-playlistplay.rb 192.168.1.1 32400 plexht-player "Awesome dancing"
     
-Play playlist number 4 on the same Plex server and client:
+Play playlist number 4 on the same Plex server and client and shuffle it:
     
-    plex-playlistplay.rb 192.168.1.1 32400 plexht-player 4      
+    plex-playlistplay.rb -s 192.168.1.1 32400 plexht-player 4      
       
 	  
 License

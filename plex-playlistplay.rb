@@ -20,18 +20,21 @@ Usage (to show playlists):
 
 Usage (to play playlist by name or number):
 
-  plex-playlistplay.rb plex_server_hostname plex_server_port client_hostname playlist_name
-  plex-playlistplay.rb plex_server_hostname plex_server_port client_hostname playlist_number
+  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_name
+  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_number
+
+  When -s is specified, shuffle the playlist before playing
 
 Examples:
   plex-playlistplay.rb 192.168.1.1 32400
   plex-playlistplay.rb 192.168.1.1 32400 plexht-player \"Awesome dancing\"
-  plex-playlistplay.rb 192.168.1.1 32400 plexht-player 4
+  plex-playlistplay.rb -s 192.168.1.1 32400 plexht-player 4
 EOF
 	exit 1
 
 end
 
+shuffle = ARGV.delete('-s') ? 1 : 0
 plex_server_host = ARGV.shift
 plex_server_port = ARGV.shift
 client_name = ARGV.shift
@@ -97,7 +100,7 @@ else
   plex_client_machine_identifier = client.attributes["machineIdentifier"].value
     
   # create play queue
-  request = Net::HTTP::Post.new("/playQueues?playlistID=#{uri_escape(playlist.attributes['ratingKey'].value)}&shuffle=0&type=audio&uri=#{uri_escape('library:///item/' + uri_escape(playlist.attributes['key'].value))}&continuous=0")
+  request = Net::HTTP::Post.new("/playQueues?playlistID=#{uri_escape(playlist.attributes['ratingKey'].value)}&shuffle=#{shuffle}&type=audio&uri=#{uri_escape('library:///item/' + uri_escape(playlist.attributes['key'].value))}&continuous=0")
   add_client_id(request, client_id)
   request.set_form_data({})
   response = plex_server.request(request)
