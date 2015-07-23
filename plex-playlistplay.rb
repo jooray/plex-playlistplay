@@ -95,7 +95,7 @@ else
   clients = Nokogiri::XML(response.body)
   
   # find the client we want
-  client = clients.xpath("//Server[@name=\"#{client_name}\"]").first
+  client = (clients.xpath("//Server[@name=\"#{client_name}\"]")+clients.xpath("//Server[@host=\"#{client_name}\"]")+clients.xpath("//Server[@address=\"#{client_name}\"]")).first
   plex_client = Net::HTTP.new(client.attributes["host"].value, client.attributes["port"].value)
   plex_client_machine_identifier = client.attributes["machineIdentifier"].value
     
