@@ -5,7 +5,9 @@ require 'bundler/setup'
 
 require 'net/http'
 require 'nokogiri'
-require 'addressable/uri'   
+require 'addressable/uri'
+
+require 'openssl'
 
 
 if ARGV.empty?
@@ -57,6 +59,8 @@ end
 # main code
 
 plex_server = Net::HTTP.new(plex_server_host, plex_server_port)
+plex_server.use_ssl = true
+plex_server.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
 # get list of playlists
 request = Net::HTTP::Get.new("/playlists/all?type=15&X-Plex-Container-Start=0&X-Plex-Container-Size=300")
