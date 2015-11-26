@@ -1,6 +1,10 @@
 plex-playlistplay
 =================
 
+*NOTE* This is currently disfunctional. I don't know why it always returns 406
+Not Acceptable for the play command and since there is no documentation,
+I am just forgetting this one for now. Any pull requests welcome.
+
 If you use [Plex](http://www.plex.tv/), this tool allows you to play a selected playlist from Plex server to a given (named) Plex client. 
 
 I use this to automatically play some nice morning music when I wake up.

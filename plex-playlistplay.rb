@@ -18,19 +18,22 @@ plex-playlistplay.rb shows playlists on a server or plays a chosen playlist
 
 Usage (to show playlists):
 
-  plex-playlistplay.rb plex_server_hostname plex_server_port
+  plex-playlistplay.rb plex_server_hostname plex_server_port plex_token
 
 Usage (to play playlist by name or number):
 
-  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_name
-  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port client_hostname playlist_number
+  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port plex_token client_hostname playlist_name
+  plex-playlistplay.rb [-s] plex_server_hostname plex_server_port plex_token client_hostname playlist_number
 
   When -s is specified, shuffle the playlist before playing
 
 Examples:
-  plex-playlistplay.rb 192.168.1.1 32400
-  plex-playlistplay.rb 192.168.1.1 32400 plexht-player \"Awesome dancing\"
-  plex-playlistplay.rb -s 192.168.1.1 32400 plexht-player 4
+  plex-playlistplay.rb 192.168.1.1 32400 \"thisisnotatoken\"
+  plex-playlistplay.rb 192.168.1.1 32400 \"thisisnotatoken\" plexht-player  \"Awesome dancing\"
+  plex-playlistplay.rb -s 192.168.1.1 32400 \"thisisnotatoken\" plexht-player 4
+
+To find out how to get plex token, see http://bit.ly/1NezoVp
+
 EOF
 	exit 1
 
@@ -39,6 +42,7 @@ end
 shuffle = ARGV.delete('-s') ? 1 : 0
 plex_server_host = ARGV.shift
 plex_server_port = ARGV.shift
+plex_token = ARGV.shift
 client_name = ARGV.shift
 playlist_name = ARGV.shift
 
@@ -52,7 +56,7 @@ def add_client_id(request, client_id)
 end
 
 def uri_escape(string)
-	Addressable::URI.encode_component(string, Addressable::URI::CharacterClasses::QUERY)
+	Addressable::URI.encode_component(string, Addressable::URI::CharacterClasses::UNRESERVED)
 end
 
 
@@ -63,7 +67,7 @@ plex_server.use_ssl = true
 plex_server.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
 # get list of playlists
-request = Net::HTTP::Get.new("/playlists/all?type=15&X-Plex-Container-Start=0&X-Plex-Container-Size=300")
+request = Net::HTTP::Get.new("/playlists/all?type=15&X-Plex-Container-Start=0&X-Plex-Container-Size=300&X-Plex-Token=#{uri_escape(plex_token)}")
 add_client_id(request, client_id)
 response = plex_server.request(request)
 playlists = Nokogiri::XML(response.body)
@@ -93,7 +97,7 @@ else
   plex_server_machine_id = Nokogiri::XML(response.body).xpath("//MediaContainer").first.attributes["machineIdentifier"].value
   
   # get information about clients
-  request = Net::HTTP::Get.new("/clients")
+  request = Net::HTTP::Get.new("/clients/?X-Plex-Token=#{uri_escape(plex_token)}")
   add_client_id(request, client_id)
   response = plex_server.request(request)
   clients = Nokogiri::XML(response.body)
@@ -104,7 +108,7 @@ else
   plex_client_machine_identifier = client.attributes["machineIdentifier"].value
     
   # create play queue
-  request = Net::HTTP::Post.new("/playQueues?playlistID=#{uri_escape(playlist.attributes['ratingKey'].value)}&shuffle=#{shuffle}&type=audio&uri=#{uri_escape('library:///item/' + uri_escape(playlist.attributes['key'].value))}&continuous=0")
+  request = Net::HTTP::Post.new("/playQueues?repeat=0&playlistID=#{uri_escape(playlist.attributes['ratingKey'].value)}&shuffle=#{shuffle}&type=audio&uri=#{uri_escape('library:///item/' + uri_escape(playlist.attributes['key'].value))}&continuous=0&X-Plex-Token=#{uri_escape(plex_token)}")
   add_client_id(request, client_id)
   request.set_form_data({})
   response = plex_server.request(request)
@@ -112,8 +116,15 @@ else
   playqueue_id = playqueue.xpath("//MediaContainer").first.attributes["playQueueID"].value
   playqueue_media_key = playqueue.xpath("//MediaContainer/Track").first.attributes["key"].value
   
+
+	# get security token
+  request = Net::HTTP::Get.new("/security/token?scope=all&type=delegation&X-Plex-Token=#{uri_escape(plex_token)}")
+  add_client_id(request, client_id)
+  response = plex_server.request(request)
+  security_token = Nokogiri::XML(response.body).xpath("//MediaContainer").first.attributes["token"].value
+
   # play media
-  request = Net::HTTP::Get.new("/player/playback/playMedia?protocol=http&address=#{uri_escape(plex_server_host)}&key=#{uri_escape(playqueue_media_key)}&offset=0&commandID=1&port=#{uri_escape(plex_server_port)}&containerKey=#{uri_escape("/playQueues/#{uri_escape(playqueue_id)}?own=1&window=200")}&type=music&machineIdentifier=#{uri_escape(plex_server_machine_id)}")
+  request = Net::HTTP::Get.new("/player/playback/playMedia?protocol=https&address=#{uri_escape(plex_server_host)}&key=#{uri_escape(playqueue_media_key)}&offset=0&commandID=1&port=#{uri_escape(plex_server_port)}&containerKey=#{uri_escape("/playQueues/#{playqueue_id}?own=1&window=200")}&type=music&machineIdentifier=#{uri_escape(plex_server_machine_id)}&token=#{uri_escape(security_token)}&X-Plex-Token=#{uri_escape(plex_token)}")
   add_client_id(request, client_id)
   request.add_field('X-Plex-Target-Client-Identifier', plex_client_machine_identifier)
   response = plex_client.request(request)
