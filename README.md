@@ -1,6 +1,20 @@
 plex-playlistplay
 =================
 
+<!-- jooray-links:start -->
+## No longer maintained
+
+I no longer use this and no longer maintain it. The repository is archived and stays here read-only.
+
+> For what I am building now, see my [project showcase](https://juraj.bednar.io/showcase/).
+>
+> I also write books and work on things that are not code: my cypherpunk novel
+> [Tamers of Entropy](https://tamersofentropy.net/) ([trailer](https://tamersofentropy.net/#trailer)),
+> my English podcast [Option Plus](https://optionplus.io/), [my blog](https://juraj.bednar.io/en/blog-en/),
+> and [everything else](https://juraj.bednar.io/en). There is also
+> [more about me](https://juraj.bednar.io/en/about-me/).
+<!-- jooray-links:end -->
+
 *NOTE* This is currently disfunctional. I don't know why it always returns 406
 Not Acceptable for the play command and since there is no documentation,
 I am just forgetting this one for now. Any pull requests welcome.
